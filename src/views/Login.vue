@@ -52,43 +52,19 @@
       <div class="user_r">
         <p class="tit">还没有注册账号？</p>
         <router-link :to="{name: 'register'}" class="btn_ora_white">立即注册</router-link>
-        <!--
-        <div class="fast_login" style="display: none">
+        
+        <div class="fast_login">
           <div class="fast_tit">
             <p class="lines"></p>
             <span class="title">其他登录方式</span>
           </div>
           <ul class="fast_list">
-            <li class="login_wb">
-              <a href="/"
-                ><img
-                  src="/images/login_weibo.png"
-                  alt="微博登录"
-                  class="img"
-                /><span>微博登录</span></a
-              >
-            </li>
-            <li class="login_qq">
-              <a href="/"
-                ><img
-                  src="/images/login_qq.png"
-                  alt="QQ登录"
-                  class="img"
-                /><span>QQ登录</span></a
-              >
-            </li>
-            <li class="login_wx">
-              <a href="/"
-                ><img
-                  src="/images/login_weixin.png"
-                  alt="微信登录"
-                  class="img"
-                /><span>微信登录</span></a
-              >
-            </li>
+            <GoogleSignInButton
+              @success="handleLoginSuccess"
+              @error="handleLoginError"
+            ></GoogleSignInButton>
           </ul>
         </div>
-        -->
       </div>
     </div>
   </div>
@@ -101,15 +77,21 @@ import { reactive, toRefs, onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import { getImgVerifyCode } from "@/api/resource";
-import { login } from "@/api/user";
+import { login, loginWithGoogle } from "@/api/user";
 import { setToken, setNickName,setUid } from "@/utils/auth";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
+import {
+  GoogleSignInButton,
+} from "vue3-google-signin";
+
+
 export default {
   name: "register",
   components: {
     Header,
     Footer,
+    GoogleSignInButton
   },
   setup() {
     const route = useRoute();
@@ -134,16 +116,36 @@ export default {
       }
       
       const { data } = await login(state);
-
+      console.log(data)
       setToken(data.token);
       setUid(data.uid)
       setNickName(data.nickName)
       router.push({ path: "/home" });
     };
 
+    // handle success event
+    const handleLoginSuccess = async (response) => {
+      const { credential } = response;
+      // console.log("Access Token", credential);
+      const { data } = await loginWithGoogle({token: credential});
+      console.log(data)
+      setToken(data.token);
+      setUid(data.uid)
+      setNickName(data.nickName)
+      router.push({ path: "/home" });
+    };
+
+    // handle an error event
+    const handleLoginError = () => {
+      console.error("Login failed");
+    };
+
+
     return {
       ...toRefs(state),
       loginUser,
+      handleLoginError,
+      handleLoginSuccess
     };
   },
 };

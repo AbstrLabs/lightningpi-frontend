@@ -8,6 +8,10 @@ export function login(params) {
     return request.post('/front/user/login', params);
 }
 
+export function loginWithGoogle(params) {
+    return request.post('/front/user/google-login', params);
+}
+
 export function submitFeedBack(params) {
     return request.post('/front/user/feedback', params);
 }
